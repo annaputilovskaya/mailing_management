@@ -46,7 +46,7 @@ INSTALLED_APPS = [
 ]
 
 CRONJOBS = [
-    ('00 10 * * *', 'mailing.cron.send_scheduled_mail')
+    ('* /1 * * *', 'mailing.cron.send_scheduled_mail')
 ]
 
 MIDDLEWARE = [
@@ -129,6 +129,8 @@ STATIC_URL = 'static/'
 STATICFILES_DIRS = [
     BASE_DIR / 'static',
 ]
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR.joinpath('media')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
@@ -147,7 +149,7 @@ EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', False) == 'True'
 EMAIL_USE_SSL = os.getenv('EMAIL_USE_SSL', False) == 'True'
 
 CRONJOBS = [
-    ('* * * * *', 'mailing.cron.scheduled_mailing'),
+    ('*/10 * * * *', 'mailing.cron.scheduled_mailing'),
  ]
 
 AUTH_USER_MODEL = 'users.User'
