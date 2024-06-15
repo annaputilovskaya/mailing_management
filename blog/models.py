@@ -4,6 +4,9 @@ NULLABLE = {'blank': True, 'null': True}
 
 
 class Post(models.Model):
+    """
+    Модель статьи
+    """
     title = models.CharField(max_length=200, verbose_name='Заголовок')
     slug = models.CharField(max_length=150, verbose_name='slug', **NULLABLE)
     text = models.TextField(verbose_name='Текст')
@@ -15,5 +18,5 @@ class Post(models.Model):
         return f'{self.title}'
 
     class Meta:
-        verbose_name = 'Пост'
-        verbose_name_plural = 'Посты'
+        verbose_name = 'Статья'
+        verbose_name_plural = 'Статьи'
