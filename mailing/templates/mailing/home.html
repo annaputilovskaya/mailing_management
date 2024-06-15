@@ -12,7 +12,7 @@
     </div>
  <div class="container">
     <div class="row text-center">
-        {% for post in random_posts %}
+        {% for object in random_posts %}
         <div class="col-4">
             <div class="card mb-4 box-shadow"  style="height: 600px">
                 {% if object.image %}
@@ -25,7 +25,7 @@
                     <div class="mb-1 text-body-secondary">{{ object.published_at }}</div>
                     <div class="mb-1 text-body-secondary">Количество просмотров: {{ object.views_count }}</div>
                     <p class="card-text mb-auto">{{ object.text | truncatechars:50 }}</p>
-                    <a href="{% url 'blog:view' object.slug %}" class="icon-link gap-1 icon-link-hover stretched-link">
+                    <a href="{% url 'blog:post' object.slug %}" class="icon-link gap-1 icon-link-hover stretched-link">
                     Читать далее
                     <svg class="bi"><use xlink:href="#chevron-right"/></svg>
                     </a>

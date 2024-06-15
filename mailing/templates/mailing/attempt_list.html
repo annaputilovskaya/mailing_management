@@ -4,14 +4,14 @@
 <div class="container">
     <div class="row text-center">
         <p>
-        <h5 class="my-0 font-weight-normal">{{ object.message }}</h5>
+        <h5 class="my-0 font-weight-normal">{{ mailing.message }}</h5>
         </p>
         <div class="col-6">
-        <h3 class="my-0 font-weight-normal">Попытки отправки рассылки:</h3>
+        <h3 class="my-0 font-weight-normal">Статистика отправки рассылки:</h3>
         </div>
         <div class="col-6">
-        <a class="my-0 font-weight-normal" href="{% url mailing:mailing %}">Назад</a>
-
+        <a class="my-0 font-weight-normal" href="{% url 'mailing:mailing' mailing.pk %}">Назад</a>
+        </div>
     </div>
     <table class="table">
         <thead>
@@ -22,17 +22,14 @@
         </tr>
         </thead>
         <tbody>
-        {% for attempt in object.attempts.all %}
-            {% if attempt.status == 'success' %}
-            <tr class="table-success">
-            {% else %}
-            <tr class="table-danger">
-            {% endif %}
-                <td>{{ attempt.last_attempt }}</td>
+        {% for attempt in object_list %}
+            <tr {% if attempt.status == 'SUCCESS' %} class="table-success" {% else %} class="table-danger" {% endif %}>
+                <td>{{ attempt.attempt_date }}</td>
                 <td>{{ attempt.status }}</td>
                 <td>{{ attempt.response }}</td>
             </tr>
         {% endfor %}
         </tbody>
     </table>
-    {% endblock %}
+</div>
+{% endblock %}

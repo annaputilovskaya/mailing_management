@@ -1,97 +1,185 @@
 from random import sample
 
+from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
+from django.core.exceptions import PermissionDenied
 from django.urls import reverse_lazy
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView, DetailView, TemplateView
 
 from blog.models import Post
-from mailing.forms import ClientForm, MessageForm, MailingForm
+from mailing.forms import ClientForm, MessageForm, MailingForm, MailingManagerForm
 from mailing.models import Mailing, Client, Message, Attempt
 
 
-class MailingListView(ListView):
+class MailingListView(LoginRequiredMixin, ListView):
+    """
+    Контроллер списка рассылок
+    """
+    model = Mailing
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.has_perm('mailing.view_mailing'):
+            return super().get_queryset()
+        return super().get_queryset().filter(client_manager=user)
+
+
+class MailingDetailView(LoginRequiredMixin, DetailView):
+    """
+    Контроллер детального просмотра рассылки
+    """
     model = Mailing
 
 
-class MailingDetailView(DetailView):
+class MailingCreateView(LoginRequiredMixin, CreateView):
+    """
+    Контроллер создания рассылки
+    """
     model = Mailing
+    form_class = MailingForm
+    success_url = reverse_lazy('mailing:mailing_list')
+
+    def form_valid(self, form):
+        mailing = form.save()
+        mailing.client_manager = self.request.user
+        mailing.save()
+        return super().form_valid(form)
 
 
-class MailingCreateView(CreateView):
+class MailingUpdateView(LoginRequiredMixin, UpdateView):
+    """
+    Контроллер редактирования рассылки
+    """
     model = Mailing
     form_class = MailingForm
 
     def get_success_url(self):
         return reverse_lazy('mailing:mailing', args=[self.kwargs.get('pk')])
 
+    def get_form_class(self):
+        user = self.request.user
+        if user == self.object.client_manager:
+            return MailingForm
+        if user.has_perm('mailing.complete_mailing'):
+            return MailingManagerForm
+        raise PermissionDenied
 
-class MailingUpdateView(UpdateView):
-    model = Mailing
-    fields = '__all__'
 
-    def get_success_url(self):
-        return reverse_lazy('mailing:mailing', args=[self.kwargs.get('pk')])
-
-
-class MailingDeleteView(DeleteView):
+class MailingDeleteView(LoginRequiredMixin, DeleteView):
+    """
+    Контроллер удаления рассылки
+    """
     model = Mailing
     success_url = reverse_lazy('mailing:mailing_list')
 
 
-class ClientListView(ListView):
+class ClientListView(LoginRequiredMixin, ListView):
+    """
+    Контроллер списка клиентов
+    """
+    model = Client
+
+    def get_queryset(self):
+        user = self.request.user
+        return super().get_queryset().filter(client_manager=user)
+
+
+class ClientDetailView(LoginRequiredMixin, DetailView):
+    """
+    Контроллер детального просмотра клиента
+    """
     model = Client
 
 
-class ClientDetailView(DetailView):
-    model = Client
-
-
-class ClientCreateView(CreateView):
+class ClientCreateView(LoginRequiredMixin, CreateView):
+    """
+    Контроллер создания клиента
+    """
     model = Client
     form_class = ClientForm
     success_url = reverse_lazy('mailing:client_list')
 
+    def form_valid(self, form):
+        client = form.save()
+        client.client_manager = self.request.user
+        client.save()
+        return super().form_valid(form)
 
-class ClientUpdateView(UpdateView):
+
+class ClientUpdateView(LoginRequiredMixin, UpdateView):
+    """
+    Контроллер редактирования клиента
+    """
     model = Client
-    fields = '__all__'
+    form_class = ClientForm
 
     def get_success_url(self):
         return reverse_lazy('mailing:client', args=[self.kwargs.get('pk')])
 
 
-class ClientDeleteView(DeleteView):
+class ClientDeleteView(LoginRequiredMixin, DeleteView):
+    """
+    Контроллер удаления клиента
+    """
     model = Client
     success_url = reverse_lazy('mailing:client_list')
 
 
-class MessageListView(ListView):
+class MessageListView(LoginRequiredMixin, ListView):
+    """
+    Контроллер списка сообщений
+    """
+    model = Message
+
+    def get_queryset(self):
+        user = self.request.user
+        return super().get_queryset().filter(client_manager=user)
+
+
+class MessageDetailView(LoginRequiredMixin, DetailView):
+    """
+    Контроллер детального просмотра сообщения
+    """
     model = Message
 
 
-class MessageDetailView(DetailView):
-    model = Message
-
-
-class MessageCreateView(CreateView):
+class MessageCreateView(LoginRequiredMixin, CreateView):
+    """
+    Контроллер создания сообщения
+    """
     model = Message
     form_class = MessageForm
     success_url = reverse_lazy('mailing:message_list')
 
+    def form_valid(self, form):
+        message = form.save()
+        message.client_manager = self.request.user
+        message.save()
+        return super().form_valid(form)
 
-class MessageUpdateView(UpdateView):
+
+class MessageUpdateView(LoginRequiredMixin, UpdateView):
+    """
+    Контроллер редактирования сообщения
+    """
     model = Message
-    fields = '__all__'
+    form_class = MessageForm
 
     def get_success_url(self):
         return reverse_lazy('mailing:message', args=[self.kwargs.get('pk')])
 
 
-class MessageDeleteView(DeleteView):
+class MessageDeleteView(LoginRequiredMixin, DeleteView):
+    """
+    Контроллер удаления сообщения
+    """
     model = Message
     success_url = reverse_lazy('mailing:message_list')
 
 
 class HomePage(TemplateView):
+    """
+    Контроллер домашней страницы
+    """
     template_name = 'mailing/home.html'
 
     def get_context_data(self, **kwargs):
@@ -104,5 +192,20 @@ class HomePage(TemplateView):
         return context_data
 
 
-class AttemptListView(ListView):
+class AttemptListView(LoginRequiredMixin, ListView):
+    """
+    Контроллер списка попыток отправки
+    """
     model = Attempt
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        mailing_pk = self.kwargs.get('pk')
+        queryset = queryset.filter(mailing__pk=mailing_pk)
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context_data = super().get_context_data(**kwargs)
+        mailing_pk = self.kwargs.get('pk')
+        context_data['mailing'] = Mailing.objects.get(pk=mailing_pk)
+        return context_data

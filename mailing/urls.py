@@ -28,5 +28,5 @@ urlpatterns = (
     path('message/<int:pk>/update/', MessageUpdateView.as_view(), name='message_update'),
     path('message/<int:pk>/delete/', MessageDeleteView.as_view(), name='message_delete'),
 
-    path('mailing/<int:pk>/attempts/', AttemptListView.as_view(), name='attempts'),
+    path('mailing/<int:pk>/attempt/', AttemptListView.as_view(), name='attempt_list'),
 )

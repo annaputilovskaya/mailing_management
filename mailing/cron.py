@@ -8,7 +8,12 @@ from config import settings
 from mailing.models import Mailing, Attempt
 
 
-def send_message(mailing, current_datetime=datetime.now(pytz.timezone(settings.TIME_ZONE))):
+def send_message(mailing):
+    """
+    Отправляет сообщение клиентам,
+    содержащимся в списке рассылки и фиксирует ответ сервера,
+    устанавливая дату следующей рассылки в зависимости от выбранной периодичности
+    """
     subject = mailing.message.subject
     message = mailing.message.text
     try:
@@ -24,31 +29,39 @@ def send_message(mailing, current_datetime=datetime.now(pytz.timezone(settings.T
             mailing.status = 'IN_PROGRESS'
             server_response = 'Успешно отправлено'
             Attempt.objects.create(
-                status=Attempt.ATTEMPT_CHOICES['SUCCESS'], response=server_response, mailing=mailing)
+                status=Attempt.ATTEMPT_SUCCESS, response=server_response, mailing=mailing)
 
             # Устанавливаем дату следующей отправки письма
             if mailing.periodicity == 'DAILY':
-                mailing.start_mailing = current_datetime + datetime.timedelta(days=1)
+                mailing.start_mailing += datetime.timedelta(days=1)
             elif mailing.periodicity == 'WEEKLY':
-                mailing.start_mailing = current_datetime + datetime.timedelta(days=7)
+                mailing.start_mailing += datetime.timedelta(days=7)
             elif mailing.periodicity == 'MONTHLY':
-                mailing.start_mailing = current_datetime + datetime.timedelta(days=30)
+                mailing.start_mailing += datetime.timedelta(days=30)
 
             mailing.save()
 
     except smtplib.SMTPException as error:
         # При ошибке отправки записываем полученный ответ сервера
-        Attempt.objects.create(status=Attempt.ATTEMPT_CHOICES['FAIL'], response=error, mailing=mailing)
+        Attempt.objects.create(status=Attempt.ATTEMPT_FAIL, response=error, mailing=mailing)
 
 
-def send_scheduled_mail(current_datetime=datetime.now(pytz.timezone(settings.TIME_ZONE))):
+def send_scheduled_mail():
+    """
+    Проверяет, какие рассылки должны быть завершены,
+    а какие необходимо отправить в данный момент времени,
+    и осуществляет их отправку
+    """
+    current_datetime = datetime.datetime.now(pytz.timezone(settings.TIME_ZONE))
+
     # Проверяем, какие рассылки должны быть завершены в этот момент времени
     for mailing in Mailing.objects.filter(status='IN_PROGRESS').filter(end_mailing__lt=current_datetime):
         mailing.status = 'COMPLETED'
         mailing.save()
-    # Проверяем, какие рассылки должны быть отправлены в этот момент времени
+    # Проверяем, какие рассылки должны быть отправлены в этот момент времени и производим отправку
     mailings = Mailing.objects.filter(status__in=['CREATED', 'IN_PROGRESS']).filter(start_mailing__lte=current_datetime)
     for mailing in mailings:
         mailing.status = 'IN_PROGRESS'
         mailing.save()
         send_message(mailing)
+    print('Mailing completed')

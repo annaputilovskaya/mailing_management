@@ -6,6 +6,9 @@
             <div class="col-6">
                 <div class="card">
                     <div class="card-body">
+                        {% if object and user != object.client_manager %}
+                        <p>Рассылка сообщения: "{{ object.message }}"</p>
+                        {% endif %}
                         <form method="post" enctype="multipart/form-data">
                             {% csrf_token %}
                             {{ form.as_p }}

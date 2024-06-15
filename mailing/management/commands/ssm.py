@@ -1,8 +1,8 @@
 from django.core.management import BaseCommand
 
-from mailing.cron import send_message
+from mailing.cron import send_scheduled_mail
 
 
 class Command(BaseCommand):
     def handle(self, *args, **kwargs):
-        send_message(*args, **kwargs)
+        send_scheduled_mail()
