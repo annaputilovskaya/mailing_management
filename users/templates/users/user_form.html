@@ -5,12 +5,15 @@
         <form class="row" method="post" enctype="multipart/form-data">
             <div class="col-6">
                 <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-text">{% if object %}{{ object.email }}{% else %}Регистрация{% endif %} </h5>
+                    </div>
                     <div class="card-body">
                         {% csrf_token %}
                         {{ form.as_p }}
                     </div>
                     <button type="submit" class="btn btn-primary">
-                        Зарегистрироваться
+                        Сохранить
                    </button>
                </div>
             </div>

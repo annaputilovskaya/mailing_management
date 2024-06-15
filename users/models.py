@@ -5,12 +5,15 @@ NULLABLE = {'null': True, 'blank': True}
 
 
 class User(AbstractUser):
+    """
+    Модель пользователя
+    """
     username = None
     email = models.EmailField(unique=True, verbose_name='Email')
     token = models.CharField(max_length=100, verbose_name='Token', **NULLABLE)
     new_email = models.EmailField(
         verbose_name='Email', **NULLABLE,
-        help_text='Для подтверждения изменения необходимо пройти по ссылке, направленной на email')
+        help_text='Для подтверждения изменения почты необходимо пройти по ссылке, направленной на email')
     new_token = models.CharField(max_length=100, **NULLABLE)
 
     USERNAME_FIELD = 'email'
@@ -22,3 +25,4 @@ class User(AbstractUser):
     class Meta:
         verbose_name = 'Пользователь'
         verbose_name_plural = 'Пользователи'
+        permissions = [('set_active', 'Can block user'),]

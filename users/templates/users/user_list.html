@@ -1,0 +1,37 @@
+{% extends 'mailing/base.html' %}
+{% block content %}
+
+
+<div class="row text-center">
+    {% for object in object_list %}
+    <div class="col-3">
+        <div class="card mb-4 box-shadow">
+            <div class="card-header">
+                <h6 class="my-0 font-weight-normal">{{ object.email }}</h6>
+            </div>
+            <div class="card-body">
+            {% if object.first_name %}
+                <p>{{ object.first_name }}</p>
+            {% endif %}
+            {% if object.last_name %}
+                <p>{{ object.last_name }}</p>
+            {% endif %}
+            {% if perms.users.set_active and user != object %}
+            <form method="post" action="{% url 'users:block_user' object.pk %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger">
+                    {% if object.is_active %}
+                    Заблокировать
+                    {% else %}
+                    Разблокировать
+                    {% endif %}
+                </button>
+            </form>
+            {% endif %}
+            </div>
+        </div>
+     </div>
+    {% endfor %}
+</div>
+
+{% endblock %}
