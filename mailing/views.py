@@ -44,6 +44,11 @@ class MailingCreateView(LoginRequiredMixin, CreateView):
         mailing.save()
         return super().form_valid(form)
 
+    def get_form_kwargs(self):
+        kwargs = super(MailingCreateView, self).get_form_kwargs()
+        kwargs['user'] = self.request.user
+        return kwargs
+
 
 class MailingUpdateView(LoginRequiredMixin, UpdateView):
     """
@@ -62,6 +67,11 @@ class MailingUpdateView(LoginRequiredMixin, UpdateView):
         if user.has_perm('mailing.complete_mailing'):
             return MailingManagerForm
         raise PermissionDenied
+
+    def get_form_kwargs(self):
+        kwargs = super(MailingUpdateView, self).get_form_kwargs()
+        kwargs['user'] = self.request.user
+        return kwargs
 
 
 class MailingDeleteView(LoginRequiredMixin, DeleteView):

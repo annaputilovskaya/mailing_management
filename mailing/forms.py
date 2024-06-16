@@ -30,6 +30,12 @@ class MailingForm(StyleFormMixin, ModelForm):
         model = Mailing
         fields = ['start_mailing', 'end_mailing', 'periodicity', 'status', 'message', 'clients']
 
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user')
+        super(MailingForm, self).__init__(*args, **kwargs)
+        self.fields['clients'].queryset = Client.objects.filter(client_manager=user)
+        self.fields['message'].queryset = Message.objects.filter(client_manager=user)
+
 
 class MailingManagerForm(StyleFormMixin, ModelForm):
     """
