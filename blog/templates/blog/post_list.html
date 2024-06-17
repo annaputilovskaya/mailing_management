@@ -1,5 +1,4 @@
 {% extends 'mailing/base.html' %}
-{% load static %}
 {% load blog_tags %}
 
 {% block content %}
@@ -21,7 +20,7 @@
         <div class="col-3">
             <div class="card mb-4 box-shadow"  style="height: 600px">
                 {% if object.image %}
-                <img class = "rounded float-start" style="height: 300px" src="{{ post.image | media_filter }}">
+                <img class = "rounded float-start" style="height: 300px" src="{{ object.image | media_filter }}">
                 {% endif %}
                 <div class="card-header">
                     <h3 class="my-0 font-weight-normal">{{ object.title }}</h3>
